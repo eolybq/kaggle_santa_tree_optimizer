@@ -3,7 +3,7 @@ from shapely.strtree import STRtree
 from decimal import Decimal, getcontext
 import pandas as pd
 
-from chtree import ChristmasTree, scale_factor
+from services.chtree import ChristmasTree, scale_factor
 
 
 getcontext().prec = 25

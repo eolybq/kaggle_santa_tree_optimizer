@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 from decimal import getcontext, Decimal
 
 
-from chtree import ChristmasTree, scale_factor
+from services.chtree import ChristmasTree, scale_factor
 
 getcontext().prec = 25
 

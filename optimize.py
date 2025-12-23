@@ -2,18 +2,15 @@ import pandas as pd
 import numpy as np
 from shapely.strtree import STRtree
 from decimal import Decimal, getcontext
-from math import exp
 
-import test
-
-from chtree import ChristmasTree, scale_factor
-from initial_cords import save_cords
+from services.chtree import ChristmasTree, scale_factor
+from services.initial_cords import save_cords
 
  
 getcontext().prec = 25
 
 # initial_df = pd.read_csv('initial_coordinates.csv').iloc[:15, :]
-initial_df = pd.read_csv('initial_coordinates.csv')
+initial_df = pd.read_csv('data/initial_coordinates.csv')
 
 
 def convert_to_np(df):
