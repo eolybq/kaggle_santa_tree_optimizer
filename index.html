@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Tree Packing Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+            height: calc(100vh - 40px);
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            border-right: 2px solid #e0e0e0;
+            padding: 24px;
+            padding-bottom: 200px;
+            overflow-y: auto;
+        }
+
+        .canvas-area {
+            position: relative;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            border: none;
+            cursor: crosshair;
+        }
+
+        .section {
+            margin-bottom: 24px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .section h3 {
+            color: #2a5298;
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 8px;
+        }
+
+        .file-upload {
+            border: 2px dashed #2a5298;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            background: #f0f4ff;
+            border-color: #1e3c72;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #2a5298;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1e3c72;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: #e0a800;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .navigation {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navigation button {
+            flex: 1;
+        }
+
+        .n-display {
+            background: #2a5298;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #495057;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .input-group-tree-select {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .input-group-tree-select > .input-group {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .toolbar {
+            padding: 16px 24px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 19px, #f0f0f0 19px, #f0f0f0 20px),
+                repeating-linear-gradient(90deg, transparent, transparent 19px, #f0f0f0 19px, #f0f0f0 20px);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coord-display {
+            background: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .overlap-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .overlap-info.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>
+            🎄 Christmas Tree Packing Editor
+        </h1>
+        <div style="text-align: right; font-size: 14px; opacity: 0.9;">
+            Interactive Configuration Tool
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <div class="section">
+                <h3> Load Configuration</h3>
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept=".csv">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📤</div>
+                    <div style="color: #2a5298; font-weight: 500;">Click to upload CSV</div>
+                    <div style="color: #6c757d; font-size: 12px; margin-top: 4px;">submission.csv or submission_optimized.csv</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3> Navigation</h3>
+                <div class="navigation">
+                    <button class="btn btn-primary" onclick="prevN()">◀ Prev</button>
+                    <button class="btn btn-primary" onclick="nextN()">Next ▶</button>
+                </div>
+                <div class="n-display" id="nDisplay">N = -</div>
+                <div class="input-group">
+                    <label>Jump to N:</label>
+                    <input type="number" id="jumpN" min="1" max="200" placeholder="Enter N (1-200)">
+                    <button class="btn btn-primary" onclick="jumpToN()" style="margin-top: 8px; width: 100%;">Go</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3> Select Tree</h3>
+                <div class="input-group-tree-select">
+                    <div class="input-group">
+                        <label>Tree Index:</label>
+                        <select id="treeSelect" onchange="selectTree()">
+                            <option value="">-- Select a tree --</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary btn-icon" onclick="centerSelectedTree()" title="Center View on Selected Tree" style="width: 44px; height: 44px;">
+                        <span style="font-size: 20px;">◎</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3> Edit Selected Tree</h3>
+                <div class="input-group">
+                    <label>X Position:</label>
+                    <input type="number" id="editX" step="0.001" onchange="updateTreePosition()" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Y Position:</label>
+                    <input type="number" id="editY" step="0.001" onchange="updateTreePosition()" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Rotation (degrees):</label>
+                    <input type="number" id="editDeg" step="0.1" onchange="updateTreePosition()" disabled>
+                </div>
+                <div class="controls-grid">
+                    <button class="btn btn-warning" onclick="rotateTree(-5)" disabled>↶ -5°</button>
+                    <button class="btn btn-warning" onclick="rotateTree(5)" disabled>↷ +5°</button>
+                    <button class="btn btn-warning" onclick="rotateTree(-15)" disabled>↶ -15°</button>
+                    <button class="btn btn-warning" onclick="rotateTree(15)" disabled>↷ +15°</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3> Statistics</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="label">Trees</div>
+                        <div class="value" id="statTrees">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Side Length</div>
+                        <div class="value" id="statSide">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Score (S²/N)</div>
+                        <div class="value" id="statScore">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Status</div>
+                        <div class="value" id="statOverlap">-</div>
+                    </div>
+                </div>
+                <div id="overlapInfo" class="overlap-info"></div>
+            </div>
+
+            <div class="section">
+                <h3> Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-danger" onclick="checkOverlap()" id="checkOverlapBtn"> Check Overlaps</button>
+                    <button class="btn btn-secondary" onclick="resetCurrentN()" id="resetBtn"> Reset Current N</button>
+                    <button class="btn btn-warning" onclick="saveCurrentN()" id="saveNBtn"> Save Current N</button>
+                    <button class="btn btn-success" onclick="saveAllConfiguration()" id="saveAllBtn"> Save All Configuration</button>
+                    <button class="btn btn-primary" onclick="centerView()"> Center View</button>
+                    <button class="btn btn-primary" onclick="resetZoom()"> Reset Zoom</button>
+                </div>
+                <div id="alertBox" class="alert"></div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div class="toolbar">
+                <div class="zoom-controls">
+                    <button class="btn btn-primary btn-icon" onclick="zoomIn()">+</button>
+                    <button class="btn btn-primary btn-icon" onclick="zoomOut()">-</button>
+                    <span style="font-size: 14px; font-weight: 500;" id="zoomLevel">100%</span>
+                </div>
+                <div class="coord-display" id="coordDisplay">X: 0.00, Y: 0.00</div>
+                <div style="flex: 1;"></div>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="showBBox" onchange="draw()" checked>
+                    <span style="font-size: 14px;">Show Bounding Box</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="showGrid" onchange="draw()" checked>
+                    <span style="font-size: 14px;">Show Grid</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="showLabels" onchange="draw()">
+                    <span style="font-size: 14px;">Show Tree Labels</span>
+                </label>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="canvas" width="1200" height="800"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tree shape definition - EXACTLY as in Python code
+    const TREE_X = [0, 0.125, 0.0625, 0.2, 0.1, 0.35, 0.075, 0.075, -0.075, -0.075, -0.35, -0.1, -0.2, -0.0625, -0.125];
+    const TREE_Y = [0.8, 0.5, 0.5, 0.25, 0.25, 0, 0, -0.2, -0.2, 0, 0, 0.25, 0.25, 0.5, 0.5];
+
+    const COLOR_PALETTE = [
+        'rgba(68, 1, 84, 0.6)',
+        'rgba(59, 82, 139, 0.6)',
+        'rgba(33, 145, 140, 0.6)',
+        'rgba(94, 201, 98, 0.6)',
+        'rgba(253, 231, 37, 0.6)',
+        'rgba(255, 100, 0, 0.6)',
+        'rgba(146, 51, 126, 0.6)',
+        'rgba(0, 100, 0, 0.6)',
+        'rgba(100, 149, 237, 0.6)',
+        'rgba(255, 99, 71, 0.6)',
+    ];
+
+    let configurations = {};
+    let originalConfigurations = {};
+    let currentN = 1;
+    let selectedTreeIndex = null;
+    let scale = 80;
+    let offsetX = 0;
+    let offsetY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragMode = 'pan';
+    let overlapStatus = {};
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            parseCSV(event.target.result);
+            currentN = Object.keys(configurations).length > 0 ? parseInt(Object.keys(configurations)[0]) : 1;
+            updateDisplay();
+            showAlert('File loaded successfully!', 'success');
+        };
+        reader.readAsText(file);
+    });
+
+    function parseCSV(text) {
+        const lines = text.split('\n').slice(1);
+        configurations = {};
+        originalConfigurations = {};
+
+        lines.forEach(line => {
+            if (!line.trim()) return;
+            const parts = line.split(',');
+            if (parts.length < 4) return;
+
+            const id = parts[0].trim();
+            const n = parseInt(id.substring(0, 3));
+            const idx = parseInt(id.split('_')[1]);
+            const x = parseFloat(parts[1].trim().replace(/^s/i, ''));
+            const y = parseFloat(parts[2].trim().replace(/^s/i, ''));
+            const deg = parseFloat(parts[3].trim().replace(/^s/i, ''));
+
+            if (!configurations[n]) {
+                configurations[n] = [];
+                originalConfigurations[n] = [];
+            }
+            configurations[n].push({ idx, x, y, deg });
+            originalConfigurations[n].push({ idx, x, y, deg });
+        });
+
+        Object.keys(configurations).forEach(n => {
+            configurations[n].sort((a, b) => a.idx - b.idx);
+            originalConfigurations[n].sort((a, b) => a.idx - b.idx);
+        });
+    }
+
+    function getRotatedPoint(x, y, cx, cy, deg) {
+        const rad = deg * Math.PI / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        return {
+            x: (x - cx) * cos - (y - cy) * sin + cx,
+            y: (x - cx) * sin + (y - cy) * cos + cy
+        };
+    }
+
+    function getTreePolygon(tree) {
+        const points = [];
+        for (let i = 0; i < TREE_X.length; i++) {
+            const rotated = getRotatedPoint(TREE_X[i], TREE_Y[i], 0, 0, tree.deg);
+            points.push({
+                x: rotated.x + tree.x,
+                y: rotated.y + tree.y
+            });
+        }
+        return points;
+    }
+
+    function pointInPolygon(point, polygon) {
+        let inside = false;
+        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+            const xi = polygon[i].x, yi = polygon[i].y;
+            const xj = polygon[j].x, yj = polygon[j].y;
+
+            const intersect = ((yi > point.y) !== (yj > point.y))
+                && (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+
+    function segmentsIntersect(p1, p2, p3, p4) {
+        const ccw = (A, B, C) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+        return ccw(p1, p3, p4) !== ccw(p2, p3, p4) && ccw(p1, p2, p3) !== ccw(p1, p2, p4);
+    }
+
+    function polygonsOverlap(poly1, poly2) {
+        for (let point of poly1) {
+            if (pointInPolygon(point, poly2)) return true;
+        }
+
+        for (let point of poly2) {
+            if (pointInPolygon(point, poly1)) return true;
+        }
+
+        for (let i = 0; i < poly1.length; i++) {
+            const p1 = poly1[i];
+            const p2 = poly1[(i + 1) % poly1.length];
+            for (let j = 0; j < poly2.length; j++) {
+                const p3 = poly2[j];
+                const p4 = poly2[(j + 1) % poly2.length];
+                if (segmentsIntersect(p1, p2, p3, p4)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    function checkOverlap() {
+        if (!configurations[currentN]) return;
+
+        const btn = document.getElementById('checkOverlapBtn');
+        btn.disabled = true;
+        btn.textContent = ' Checking...';
+
+        setTimeout(() => {
+            const trees = configurations[currentN];
+            const overlaps = [];
+
+            for (let i = 0; i < trees.length; i++) {
+                const poly1 = getTreePolygon(trees[i]);
+                for (let j = i + 1; j < trees.length; j++) {
+                    const poly2 = getTreePolygon(trees[j]);
+                    if (polygonsOverlap(poly1, poly2)) {
+                        overlaps.push([i, j]);
+                    }
+                }
+            }
+
+            overlapStatus[currentN] = overlaps;
+
+            const overlapInfo = document.getElementById('overlapInfo');
+            const statOverlap = document.getElementById('statOverlap');
+
+            if (overlaps.length > 0) {
+                statOverlap.textContent = 'YES';
+                statOverlap.style.color = '#ff0000';
+                overlapInfo.innerHTML = `<strong> ${overlaps.length} Overlap(s) Detected!</strong><br>` +
+                    overlaps.map(([i, j]) => `Tree ${i} ↔ Tree ${j}`).join('<br>');
+                overlapInfo.classList.add('show');
+                showAlert(`Found ${overlaps.length} overlap(s)!`, 'danger');
+            } else {
+                statOverlap.textContent = ' NO';
+                statOverlap.style.color = '#28a745';
+                overlapInfo.classList.remove('show');
+                showAlert('No overlaps detected!', 'success');
+            }
+
+            btn.disabled = false;
+            btn.textContent = ' Check Overlaps';
+            draw();
+        }, 100);
+    }
+
+    function drawTree(tree, idx, isSelected = false, hasOverlap = false) {
+        const { x, y, deg } = tree;
+
+        const colorIndex = idx % COLOR_PALETTE.length;
+        let fillColor = COLOR_PALETTE[colorIndex];
+        let strokeColor = fillColor.replace('0.6)', '1)');
+
+        if (hasOverlap) {
+            fillColor = 'rgba(255, 0, 0, 0.5)';
+            strokeColor = '#cc0000';
+            ctx.lineWidth = 0;
+        } else if (isSelected) {
+            fillColor = 'rgba(255, 200, 0, 0.7)';
+            strokeColor = '#ff6600';
+            ctx.lineWidth = 0;
+        } else {
+            ctx.lineWidth = 0;
+        }
+
+        ctx.save();
+
+        // Translate to tree position (in the already Y-flipped coordinate system)
+        ctx.translate(x * scale, y * scale);
+        ctx.rotate(deg * Math.PI / 180);
+
+        ctx.beginPath();
+        ctx.moveTo(TREE_X[0] * scale, TREE_Y[0] * scale);
+        for (let i = 1; i < TREE_X.length; i++) {
+            ctx.lineTo(TREE_X[i] * scale, TREE_Y[i] * scale);
+        }
+        ctx.closePath();
+
+        ctx.fillStyle = fillColor;
+        ctx.strokeStyle = strokeColor;
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw center point
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = isSelected ? '#ff0000' : '#000000';
+        ctx.fill();
+
+        // Label
+        if (document.getElementById('showLabels').checked) {
+            ctx.save();
+            // Flip text back upright (since we're in Y-flipped coordinates)
+            ctx.scale(1, -1);
+            ctx.fillStyle = isSelected ? '#ff0000' : hasOverlap ? '#cc0000' : '#000000';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(idx.toString(), 0, -(TREE_Y[0] * scale + 5));
+            ctx.restore();
+        }
+
+        ctx.restore();
+    }
+
+    function drawGrid() {
+        if (!document.getElementById('showGrid').checked) return;
+
+        // Save current context state
+        const savedTransform = ctx.getTransform();
+
+        // Reset to screen coordinates for grid
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+
+        const gridSize = scale;
+        const startX = (canvas.width / 2 + offsetX) % gridSize;
+        const startY = (canvas.height / 2 - offsetY) % gridSize; // Note: minus offsetY for Y-flip
+
+        for (let x = startX; x < canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+
+        for (let y = startY; y < canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+
+        ctx.strokeStyle = '#999';
+        ctx.lineWidth = 2;
+
+        // X-axis (horizontal through origin)
+        const axisY = canvas.height / 2 - offsetY; // Flip Y for axis
+        ctx.beginPath();
+        ctx.moveTo(0, axisY);
+        ctx.lineTo(canvas.width, axisY);
+        ctx.stroke();
+
+        // Y-axis (vertical through origin)
+        const axisX = canvas.width / 2 + offsetX;
+        ctx.beginPath();
+        ctx.moveTo(axisX, 0);
+        ctx.lineTo(axisX, canvas.height);
+        ctx.stroke();
+
+        // Restore the transform
+        ctx.setTransform(savedTransform);
+    }
+
+    function getBoundingBoxData() {
+        if (!configurations[currentN] || configurations[currentN].length === 0) {
+            return { minX: 0, minY: 0, maxX: 0, maxY: 0, sideLength: 0, centerX: 0, centerY: 0 };
+        }
+
+        const trees = configurations[currentN];
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+        trees.forEach(tree => {
+            const polygon = getTreePolygon(tree);
+            polygon.forEach(point => {
+                minX = Math.min(minX, point.x);
+                minY = Math.min(minY, point.y);
+                maxX = Math.max(maxX, point.x);
+                maxY = Math.max(maxY, point.y);
+            });
+        });
+
+        const spanX = maxX - minX;
+        const spanY = maxY - minY;
+        const sideLength = Math.max(spanX, spanY);
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        return { minX, minY, maxX, maxY, sideLength, centerX, centerY };
+    }
+
+    function drawBoundingBox() {
+        if (!document.getElementById('showBBox').checked) return;
+        if (!configurations[currentN]) return;
+
+        const { sideLength, centerX, centerY } = getBoundingBoxData();
+        if (sideLength === 0) return;
+
+        const squareMinX = centerX - sideLength / 2;
+        const squareMinY = centerY - sideLength / 2;
+        const screenSize = sideLength * scale;
+
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([10, 5]);
+
+        ctx.strokeRect(
+            squareMinX * scale,
+            squareMinY * scale,
+            screenSize,
+            screenSize
+        );
+        ctx.setLineDash([]);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw grid in screen coordinates (before transform)
+        drawGrid();
+
+        if (!configurations[currentN]) {
+            updateStatistics();
+            return;
+        }
+
+        // Apply global transformation like in other.html
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.scale(1, -1); // Flip Y-axis globally
+        ctx.translate(offsetX, offsetY);
+
+        // Draw trees
+        const trees = configurations[currentN];
+        const overlappingTrees = new Set();
+        if (overlapStatus[currentN]) {
+            overlapStatus[currentN].forEach(([i, j]) => {
+                overlappingTrees.add(i);
+                overlappingTrees.add(j);
+            });
+        }
+
+        trees.forEach((tree, idx) => {
+            if (idx !== selectedTreeIndex) {
+                drawTree(tree, idx, false, overlappingTrees.has(idx));
+            }
+        });
+
+        if (selectedTreeIndex !== null) {
+            const tree = trees[selectedTreeIndex];
+            drawTree(tree, selectedTreeIndex, true, overlappingTrees.has(selectedTreeIndex));
+        }
+
+        // Draw bounding box
+        drawBoundingBox();
+
+        ctx.restore();
+        updateStatistics();
+    }
+
+    function updateDisplay() {
+        document.getElementById('nDisplay').textContent = `N = ${currentN}`;
+
+        const select = document.getElementById('treeSelect');
+        select.innerHTML = '<option value="">-- Select a tree --</option>';
+
+        const treeControls = document.querySelectorAll('.controls-grid button, #editX, #editY, #editDeg');
+
+        if (configurations[currentN]) {
+            configurations[currentN].forEach((tree, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `Tree ${idx} (x:${tree.x.toFixed(3)}, y:${tree.y.toFixed(3)}, deg:${tree.deg.toFixed(1)})`;
+                select.appendChild(option);
+            });
+            treeControls.forEach(btn => btn.disabled = false);
+        } else {
+            treeControls.forEach(btn => btn.disabled = true);
+        }
+
+        selectedTreeIndex = null;
+        updateTreeEditor();
+        draw();
+    }
+
+    function updateTreeEditor() {
+        const editX = document.getElementById('editX');
+        const editY = document.getElementById('editY');
+        const editDeg = document.getElementById('editDeg');
+        const select = document.getElementById('treeSelect');
+
+        if (selectedTreeIndex !== null && configurations[currentN]) {
+            const tree = configurations[currentN][selectedTreeIndex];
+            editX.value = tree.x.toFixed(6);
+            editY.value = tree.y.toFixed(6);
+            editDeg.value = tree.deg.toFixed(2);
+            select.value = selectedTreeIndex;
+        } else {
+            editX.value = '';
+            editY.value = '';
+            editDeg.value = '';
+            select.value = '';
+        }
+    }
+
+    function updateStatistics() {
+        if (!configurations[currentN]) {
+            document.getElementById('statTrees').textContent = '-';
+            document.getElementById('statSide').textContent = '-';
+            document.getElementById('statScore').textContent = '-';
+            return;
+        }
+
+        const trees = configurations[currentN];
+        document.getElementById('statTrees').textContent = trees.length;
+
+        const { sideLength } = getBoundingBoxData();
+        const score = sideLength > 0 ? (sideLength * sideLength) / trees.length : 0;
+
+        document.getElementById('statSide').textContent = sideLength.toFixed(4);
+        document.getElementById('statScore').textContent = score.toFixed(6);
+    }
+
+    function prevN() {
+        if (currentN > 1) {
+            currentN--;
+            updateDisplay();
+        }
+    }
+
+    function nextN() {
+        const configKeys = Object.keys(configurations).map(n => parseInt(n));
+        const maxN = configKeys.length > 0 ? Math.max(...configKeys) : 1;
+        if (currentN < maxN) {
+            currentN++;
+            updateDisplay();
+        }
+    }
+
+    function jumpToN() {
+        const n = parseInt(document.getElementById('jumpN').value);
+        if (configurations[n]) {
+            currentN = n;
+            updateDisplay();
+        } else {
+            showAlert(`Configuration N=${n} not found!`, 'danger');
+        }
+    }
+
+    function selectTree() {
+        const idxStr = document.getElementById('treeSelect').value;
+        const idx = parseInt(idxStr);
+
+        if (!isNaN(idx)) {
+            selectedTreeIndex = idx;
+            updateTreeEditor();
+            draw();
+        } else {
+            selectedTreeIndex = null;
+            updateTreeEditor();
+            draw();
+        }
+    }
+
+    function centerSelectedTree() {
+        if (selectedTreeIndex === null || !configurations[currentN]) {
+            showAlert('No tree selected to center view!', 'danger');
+            return;
+        }
+
+        const tree = configurations[currentN][selectedTreeIndex];
+
+        offsetX = -tree.x * scale;
+        offsetY = -tree.y * scale;
+
+        draw();
+        showAlert(`View centered on Tree ${selectedTreeIndex}`, 'success');
+    }
+
+    function updateTreePosition() {
+        if (selectedTreeIndex === null || !configurations[currentN]) return;
+
+        const x = parseFloat(document.getElementById('editX').value);
+        const y = parseFloat(document.getElementById('editY').value);
+        let deg = parseFloat(document.getElementById('editDeg').value);
+
+        if (!isNaN(x) && !isNaN(y) && !isNaN(deg)) {
+            deg = deg % 360;
+            if (deg < 0) deg += 360;
+
+            configurations[currentN][selectedTreeIndex].x = x;
+            configurations[currentN][selectedTreeIndex].y = y;
+            configurations[currentN][selectedTreeIndex].deg = deg;
+
+            document.getElementById('editDeg').value = deg.toFixed(2);
+
+            if (overlapStatus[currentN]) {
+                delete overlapStatus[currentN];
+                document.getElementById('overlapInfo').classList.remove('show');
+                document.getElementById('statOverlap').textContent = '-';
+            }
+
+            draw();
+        }
+    }
+
+    function rotateTree(delta) {
+        if (selectedTreeIndex === null || !configurations[currentN]) return;
+
+        let newDeg = configurations[currentN][selectedTreeIndex].deg + delta;
+
+        newDeg = newDeg % 360;
+        if (newDeg < 0) newDeg += 360;
+
+        configurations[currentN][selectedTreeIndex].deg = newDeg;
+        document.getElementById('editDeg').value = newDeg.toFixed(2);
+
+        if (overlapStatus[currentN]) {
+            delete overlapStatus[currentN];
+            document.getElementById('overlapInfo').classList.remove('show');
+            document.getElementById('statOverlap').textContent = '-';
+        }
+
+        draw();
+    }
+
+    function resetCurrentN() {
+        if (!originalConfigurations[currentN]) {
+            showAlert('No original configuration to reset to!', 'danger');
+            return;
+        }
+
+        if (confirm(`Reset N=${currentN} to original state?`)) {
+            configurations[currentN] = JSON.parse(JSON.stringify(originalConfigurations[currentN]));
+
+            if (overlapStatus[currentN]) {
+                delete overlapStatus[currentN];
+                document.getElementById('overlapInfo').classList.remove('show');
+                document.getElementById('statOverlap').textContent = '-';
+            }
+
+            selectedTreeIndex = null;
+            updateDisplay();
+            showAlert(` N=${currentN} reset to original configuration`, 'success');
+        }
+    }
+
+    function saveCurrentN() {
+        if (!configurations[currentN]) {
+            showAlert('No configuration to save!', 'danger');
+            return;
+        }
+
+        let csv = 'id,x,y,deg\n';
+        const trees = configurations[currentN];
+
+        trees.forEach(tree => {
+            const id = `${String(currentN).padStart(3, '0')}_${tree.idx}`;
+            csv += `${id},s${tree.x.toFixed(10)},s${tree.y.toFixed(10)},s${tree.deg.toFixed(10)}\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `configuration_N${currentN}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showAlert(` N=${currentN} saved as configuration_N${currentN}.csv`, 'success');
+    }
+
+    function saveAllConfiguration() {
+        if (Object.keys(configurations).length === 0) {
+            showAlert('No configuration to save!', 'danger');
+            return;
+        }
+
+        let csv = 'id,x,y,deg\n';
+
+        Object.keys(configurations).sort((a, b) => parseInt(a) - parseInt(b)).forEach(n => {
+            configurations[n].forEach(tree => {
+                const id = `${String(n).padStart(3, '0')}_${tree.idx}`;
+                csv += `${id},s${tree.x.toFixed(10)},s${tree.y.toFixed(10)},s${tree.deg.toFixed(10)}\n`;
+            });
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'submission_optimized.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showAlert(' All configurations saved as submission_optimized.csv', 'success');
+    }
+
+    function centerView() {
+        offsetX = 0;
+        offsetY = 0;
+        draw();
+    }
+
+    function resetZoom() {
+        scale = 80;
+        offsetX = 0;
+        offsetY = 0;
+        document.getElementById('zoomLevel').textContent = '100%';
+        draw();
+    }
+
+    function zoomIn() {
+        scale *= 1.02;
+        document.getElementById('zoomLevel').textContent = Math.round((scale / 80) * 100) + '%';
+        draw();
+    }
+
+    function zoomOut() {
+        scale /= 1.02;
+        document.getElementById('zoomLevel').textContent = Math.round((scale / 80) * 100) + '%';
+        draw();
+    }
+
+    function showAlert(message, type) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.textContent = message;
+        alertBox.className = `alert alert-${type} show`;
+
+        setTimeout(() => {
+            alertBox.classList.remove('show');
+        }, 5000);
+    }
+
+    // Updated mousedown for tree selection
+    canvas.addEventListener('mousedown', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Convert to world coordinates
+        const worldX = (mouseX - canvas.width / 2 - offsetX) / scale;
+        const worldY = (canvas.height / 2 - mouseY - offsetY) / scale;
+
+        if (configurations[currentN]) {
+            let clickedTree = null;
+            const trees = configurations[currentN];
+            for (let idx = trees.length - 1; idx >= 0; idx--) {
+                const tree = trees[idx];
+
+                // Check distance to tree center in world coordinates
+                const dist = Math.sqrt(Math.pow(worldX - tree.x, 2) + Math.pow(worldY - tree.y, 2));
+
+                if (dist < 15 / scale) { // Scale-aware click radius
+                    clickedTree = idx;
+                    break;
+                }
+
+                const polygon = getTreePolygon(tree);
+                if (pointInPolygon({ x: worldX, y: worldY }, polygon)) {
+                    clickedTree = idx;
+                    break;
+                }
+            }
+
+            if (clickedTree !== null) {
+                selectedTreeIndex = clickedTree;
+                document.getElementById('treeSelect').value = clickedTree;
+                updateTreeEditor();
+                dragMode = 'tree';
+                isDragging = true;
+                dragStartX = mouseX;
+                dragStartY = mouseY;
+                draw();
+                return;
+            }
+        }
+
+        isDragging = true;
+        dragMode = 'pan';
+        dragStartX = mouseX;
+        dragStartY = mouseY;
+    });
+
+    canvas.addEventListener('mousemove', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Convert to world coordinates with Y-flip
+        const worldX = (mouseX - canvas.width / 2 - offsetX) / scale;
+        const worldY = (canvas.height / 2 - mouseY + offsetY) / scale;
+        document.getElementById('coordDisplay').textContent =
+            `X: ${worldX.toFixed(2)}, Y: ${worldY.toFixed(2)}`;
+
+        if (isDragging) {
+            const dx = mouseX - dragStartX;
+            const dy = mouseY - dragStartY;
+
+            if (dragMode === 'tree' && selectedTreeIndex !== null && configurations[currentN]) {
+                const tree = configurations[currentN][selectedTreeIndex];
+                tree.x += dx / scale;
+                tree.y -= dy / scale; // Subtract because screen Y is inverted
+
+                if (overlapStatus[currentN]) {
+                    delete overlapStatus[currentN];
+                    document.getElementById('overlapInfo').classList.remove('show');
+                    document.getElementById('statOverlap').textContent = '-';
+                }
+
+                updateTreeEditor();
+            } else if (dragMode === 'pan') {
+                offsetX += dx;
+                offsetY += dy;
+            }
+
+            dragStartX = mouseX;
+            dragStartY = mouseY;
+            draw();
+        }
+    });
+
+    canvas.addEventListener('mouseup', function() {
+        isDragging = false;
+    });
+
+    canvas.addEventListener('mouseleave', function() {
+        isDragging = false;
+    });
+
+    canvas.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left - canvas.width / 2;
+        const mouseY = e.clientY - rect.top - canvas.height / 2;
+
+        offsetX -= (mouseX + offsetX) * (zoomFactor - 1);
+        offsetY -= (mouseY + offsetY) * (zoomFactor - 1);
+
+        scale *= zoomFactor;
+
+        document.getElementById('zoomLevel').textContent = Math.round((scale / 80) * 100) + '%';
+        draw();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!configurations[currentN]) return;
+
+        if (e.target.matches('input') || e.target.matches('select')) return;
+
+        if (e.key === 'ArrowLeft') {
+            prevN();
+        } else if (e.key === 'ArrowRight') {
+            nextN();
+        }
+
+        if (selectedTreeIndex !== null) {
+            if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                rotateTree(e.shiftKey ? -15 : 15);
+            }
+        }
+    });
+
+    updateDisplay();
+    draw();
+</script>
+</body>
+</html>
