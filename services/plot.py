@@ -2,19 +2,26 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from decimal import getcontext, Decimal
-
+from argparse import ArgumentParser
 
 from services.chtree import ChristmasTree, scale_factor
 
 getcontext().prec = 25
 
 
-def plot_n_trees_plotly(n_count, filename):
+def plot_n_trees_plotly():
     """
     Interaktivní vykreslení stromů pro konkrétní N pomocí Plotly.
     """
+    parser = ArgumentParser()
+    parser.add_argument("-n", "--n_count", type=int)
+    parser.add_argument("-f", "--filename", type=str)
 
-    df = pd.read_csv(f"{filename}.csv")
+    args = parser.parse_args()
+    n_count = args.n_count
+    filename = args.filename
+
+    df = pd.read_csv(f"data/{filename}.csv")
     for col in ['x', 'y', 'deg']:
         df[col] = df[col].apply(lambda x: x.replace("s", "")).apply(Decimal)
     # 1. Filtrace dat
@@ -83,13 +90,5 @@ def plot_n_trees_plotly(n_count, filename):
     fig.show()
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
-    while True:
-        inpt = int(input("zadej cylso"))
-        plot_n_trees_plotly(inpt, filename="optimized")
+    plot_n_trees_plotly()

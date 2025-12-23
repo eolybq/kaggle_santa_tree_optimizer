@@ -1,3 +1,4 @@
+import copy
 import pandas as pd
 import numpy as np
 from shapely.strtree import STRtree
@@ -8,9 +9,6 @@ from services.initial_cords import save_cords
 
  
 getcontext().prec = 25
-
-# initial_df = pd.read_csv('initial_coordinates.csv').iloc[:15, :]
-initial_df = pd.read_csv('data/initial_coordinates.csv')
 
 
 def convert_to_np(df):
@@ -27,10 +25,6 @@ def convert_to_np(df):
     return data
 
 
-data = convert_to_np(initial_df)
-
-
-
 def compute_loss(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5*scale_factor, eta_origin=0.01, eta_n=0.01):
     possible_indices = tree_index.query(cand_tree.polygon, predicate='dwithin', distance=eta_distance)
 
@@ -41,7 +35,7 @@ def compute_loss(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distanc
 
 
     # Pohyb stromu -> nový list
-    new_placed_trees = placed_trees.copy()
+    new_placed_trees = copy.deepcopy(placed_trees)
     new_placed_trees[idx] = new_tree
 
     new_tree_index = STRtree([x.polygon for x in new_placed_trees])
@@ -62,7 +56,7 @@ def compute_loss(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distanc
     
     
 def candidate(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5*scale_factor):
-    new_placed_trees = placed_trees.copy()
+    new_placed_trees = copy.deepcopy(placed_trees)
     new_placed_trees[idx] = new_tree
 
     new_tree_index = STRtree([x.polygon for x in new_placed_trees])
@@ -91,7 +85,10 @@ def candidate(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5
         return placed_trees
 
 
-def main(step_sd = 0.5, default_temperature=1000, cooling_rate=0.996, min_temperature=0.01):
+def main(save_file, file_to_optimize="initial_coordinates", step_sd = 0.5, default_temperature=1000, cooling_rate=0.996, min_temperature=0.01):
+    initial_df = pd.read_csv(f'data/{file_to_optimize}.csv')
+    data = convert_to_np(initial_df)
+
     for n in range(len(data)):
 
         placed_trees = [ChristmasTree(*t) for t in data[n]]
@@ -122,12 +119,12 @@ def main(step_sd = 0.5, default_temperature=1000, cooling_rate=0.996, min_temper
     flatten_data = [item for sublist in data for item in sublist]
 
     # print(len(flatten_data))
-    index = [f'{n:03d}_{t}' for n in range(1, 5 + 1) for t in range(n)]
+    index = [f'{n:03d}_{t}' for n in range(1, len(data) + 1) for t in range(n)]
     df = pd.DataFrame(flatten_data, index=index, columns=['x', 'y', 'deg'])
     df.reset_index(inplace=True, names='id')
 
-    save_cords(df, "optimized")
+    save_cords(df, save_file)
 
 
 if __name__ == "__main__":
-    main()
+    main(file_to_optimize="optimized", save_file="test")

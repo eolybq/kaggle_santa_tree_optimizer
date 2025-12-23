@@ -15,8 +15,8 @@ def save_cords(df, filename):
     for col in df.columns:
         if col != 'id':
             initial_df[col] = 's' + initial_df[col].astype('string')
-    initial_df.to_csv(f'{filename}.csv', index=False)
-    print(f"Data saved to {filename}.csv")
+    initial_df.to_csv(f'data/{filename}.csv', index=False)
+    print(f"Data saved to data/{filename}.csv")
 
 
 def place_tree(placed_trees, min_bounds, min_side, attempts):
