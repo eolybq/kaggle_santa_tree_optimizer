@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from shapely.strtree import STRtree
 from decimal import Decimal, getcontext
+from math import exp
 
 from services.chtree import ChristmasTree, scale_factor
 from services.initial_cords import save_cords
@@ -25,7 +26,17 @@ def convert_to_np(df):
     return data
 
 
-def compute_loss(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5*scale_factor, eta_origin=0.01, eta_n=0.01):
+def compute_side(placed_trees):
+    min_x = min(p.bounds[0] for p in placed_trees) / float(scale_factor)
+    max_x = max(p.bounds[2] for p in placed_trees) / float(scale_factor)
+    min_y = min(p.bounds[1] for p in placed_trees) / float(scale_factor)
+    max_y = max(p.bounds[3] for p in placed_trees) / float(scale_factor)
+
+    return max(max_x - min_x, max_y - min_y)
+
+
+
+def compute_loss(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5, eta_origin=0.1, eta_n=0.01):
     possible_indices = tree_index.query(cand_tree.polygon, predicate='dwithin', distance=eta_distance)
 
     old_distances = 0
@@ -44,18 +55,27 @@ def compute_loss(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distanc
     new_distances = 0
     for close_tree in new_possible_indices:
         new_distances += new_tree.polygon.distance(new_placed_trees[close_tree].polygon)
+
     new_distance_from_origin = new_tree.polygon.distance(ChristmasTree(Decimal(0), Decimal(0), Decimal(0)).polygon)
 
+    # NOTE unused loss
+    old_loss = Decimal(old_distances/len(placed_trees)) + Decimal(eta_origin*old_distance_from_origin) - Decimal(eta_n*len(possible_indices))
+    new_loss = Decimal(new_distances/len(new_placed_trees)) + Decimal(eta_origin*new_distance_from_origin) - Decimal(eta_n*len(new_possible_indices))
 
-    old_loss = Decimal(old_distances/len(placed_trees)) + Decimal(eta_origin*old_distance_from_origin) - Decimal(eta_n*len(possible_indices)) * scale_factor
-    new_loss = Decimal(new_distances/len(new_placed_trees)) + Decimal(eta_origin*new_distance_from_origin) - Decimal(eta_n*len(new_possible_indices)) * scale_factor
 
-    print((new_loss - old_loss))
+    # old_bbox = compute_side([p.polygon for p in placed_trees])**2 / len(placed_trees)
+    # new_bbox = compute_side([p.polygon for p in new_placed_trees])**2 / len(new_placed_trees)
+    #
+    #
+    # old_loss = Decimal(old_bbox) + Decimal(eta_origin*old_distance_from_origin) / scale_factor
+    # new_loss = Decimal(new_bbox) + Decimal(eta_origin*new_distance_from_origin) / scale_factor
+
+    # print(f"Old: {old_loss}, New: {new_loss}, Improvement: {old_loss - new_loss}")
 
     return {"old_loss": old_loss, "new_loss": new_loss, "new_trees_list": new_placed_trees}
     
     
-def candidate(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5*scale_factor):
+def candidate(temp, cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5*scale_factor):
     new_placed_trees = copy.deepcopy(placed_trees)
     new_placed_trees[idx] = new_tree
 
@@ -75,7 +95,7 @@ def candidate(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5
     if loss_dict["old_loss"] > loss_dict["new_loss"]:
         return loss_dict["new_trees_list"]
 
-    # P = exp(-((loss_dict["new_loss"] - loss_dict["old_loss"]) / scale_factor))
+    # P = exp(-(loss_dict["new_loss"] - loss_dict["old_loss"]) / Decimal(temp))
     # print(f"Acceptance probability: {P}")
     #
     #
@@ -85,14 +105,17 @@ def candidate(cand_tree, new_tree, tree_index, placed_trees, idx, eta_distance=5
         return placed_trees
 
 
-def main(save_file, file_to_optimize="initial_coordinates", step_sd = 0.5, default_temperature=1000, cooling_rate=0.996, min_temperature=0.01):
+def main(save_file, N=None, file_to_optimize="initial_coordinates", step_deg=5, step_sd = 0.2, default_temperature=1000, cooling_rate=0.996, min_temperature=0.01):
     initial_df = pd.read_csv(f'data/{file_to_optimize}.csv')
     data = convert_to_np(initial_df)
 
-    for n in range(len(data)):
+    if N is None:
+        N = len(data)
+
+    for n in range(N):
 
         placed_trees = [ChristmasTree(*t) for t in data[n]]
-        # temperature = default_temperature
+        temperature = default_temperature
         # while temperature > min_temperature:
         for iteration in range(10000):
             tree_index = STRtree([x.polygon for x in placed_trees])
@@ -103,13 +126,15 @@ def main(save_file, file_to_optimize="initial_coordinates", step_sd = 0.5, defau
             new_tree = ChristmasTree(
                 cand_tree.center_x + Decimal(np.random.normal(0, step_sd)),
                 cand_tree.center_y + Decimal(np.random.normal(0, step_sd)),
-                cand_tree.angle + np.random.randint(0, 2)
+                cand_tree.angle + np.random.randint(-step_deg, step_deg)
             )
             # TODO Vracet jen idx new_tree a měnit jen data[n][idx] -> optimalizovat
-            placed_trees = candidate(cand_tree=cand_tree, new_tree=new_tree, tree_index=tree_index, placed_trees=placed_trees, idx=rnd_selection)
+            placed_trees = candidate(temp=temperature, cand_tree=cand_tree, new_tree=new_tree, tree_index=tree_index, placed_trees=placed_trees, idx=rnd_selection)
             # print(f"Swapped placed trees: {swap_placed_trees}")
+            # temperature *= cooling_rate
 
         data[n] = [(t.center_x, t.center_y, t.angle) for t in placed_trees]
+        print(n)
             # tree_objects_list[n] = swap_placed_trees
             
 
@@ -127,4 +152,4 @@ def main(save_file, file_to_optimize="initial_coordinates", step_sd = 0.5, defau
 
 
 if __name__ == "__main__":
-    main(file_to_optimize="optimized", save_file="test")
+    main(N=200, file_to_optimize="optimized", save_file="optimized_final")
